@@ -5,7 +5,7 @@
       "server": "localhost",
       "port": 5432,
       "driver": "PostgreSQL",
-      "name": "fm_test_db",
+      "name": "fm_db",
       "database": "fm_test",
       "username": "postgres",
       "password": "postgres"

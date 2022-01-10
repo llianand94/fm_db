@@ -4,22 +4,22 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./index.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/llianand94/fm_db.git"
+    "url": "git+https://github.com/freshjsftm/fm_test_db.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/llianand94/fm_db/issues"
+    "url": "https://github.com/freshjsftm/fm_test_db/issues"
   },
-  "homepage": "https://github.com/llianand94/fm_db#readme",
+  "homepage": "https://github.com/freshjsftm/fm_test_db#readme",
   "dependencies": {
     "axios": "^0.24.0",
+    "lodash": "^4.17.21",
     "pg": "^8.7.1"
   }
 }

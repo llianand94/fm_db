@@ -1,40 +1,55 @@
-const { Client } = require('pg');
-const axios = require('axios');
-const http = axios.create({
-  baseURL: 'https://randomuser.me/api/'
-});
-const loadUser = async () => {
-  const {data:{results}} = await http.get('?results=500&seed=allow&page=1&nat=gb');
-  return results;
-}
-const config = {
-  user:'postgres',
-  password:'postgres',
-  host:'localhost',
-  port: 5432,
-  database: 'fm_test'
-};
-const client = new Client(config);
+const path = require('path');
+const fs = require('fs').promises;
+const _ = require('lodash');
+
+const {client, User, Phone } = require('./models');
+const {loadUsers} = require('./api');
+const {generatePhones} = require('./utils');
+
 start();
+
 async function start(){
   await client.connect();
-  const users = await loadUser();
-  const res = await client.query(`
-    INSERT INTO "users"("first_name","last_name","email","is_male","birthday","height")
-    VALUES ${mapUsers(users)};
-  `);
-  console.log(res);
+
+  const resetDbQueryString = await fs.readFile(
+    path.join(__dirname, '/sql/reset-db-query.sql'),'utf8'
+  );
+
+  await client.query(resetDbQueryString);
+
+  const {rows:users} = await User.bulkCreate(await loadUsers());
+  const phones = await Phone.bulkCreate(generatePhones());
+ 
+  /*create order*/
+  const ordersValuesString = users
+    .map(u=> new Array(_.random(1,5,false)).fill(null)
+      .map(()=>`(${u.id})`).join(',')
+    ).join(',');
+
+  const {rows:orders} = await client.query(`
+    INSERT INTO "orders"("userId")
+    VALUES ${ordersValuesString}
+    RETURNING id;
+  `);  
+
+  const phonesToOrdersValuesString = orders
+    .map(o=>{
+      const arr = new Array(_.random(1, phones.length)).fill(null)
+        .map(
+          ()=> phones[_.random(1, phones.length-1)]
+        );
+        return [...new Set(arr)]
+          .map(p=>`(${o.id},${p.id},${_.random(1,4)})`)
+          .join(',')
+    }).join(',');
+
+  await client.query(`
+    INSERT INTO "phones_to_orders"("orderId", "phoneId", "quantity")
+    VALUES ${phonesToOrdersValuesString};
+  `); 
+
+
   await client.end();
 }
-function mapUsers(users){
-  return users
-    .map(
-      ({name:{first, last}, email, gender, dob:{date} }) => 
-      `('${first}', '${last}', '${email}', '${gender==='male'}', '${date}', '${(Math.random()+1.1).toFixed(2)}')`
-    )
-    .join(',');
-}
-
-
 
 
